@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 
-"""Log formatter
+"""Create logger
 """
 
 import logging
 import re
-from typing import List
+from typing import List, Tuple
 
 
-def filter_datum(fields: List[str],
-                 redaction: str, message: str, separator: str) -> str:
+def filter_datum(fields: List[str], redaction: str, message: str, separator: str) -> str:
     """
     Obfuscate specified fields in a log message.
 
@@ -40,5 +39,25 @@ class RedactingFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         original_message = super().format(record)
-        return filter_datum(self.fields,
-                            self.REDACTION, original_message, self.SEPARATOR)
+        return filter_datum(self.fields, self.REDACTION, original_message, self.SEPARATOR)
+
+
+# Define PII_FIELDS
+PII_FIELDS: Tuple[str, ...] = ("name", "email", "phone", "ssn", "password")
+
+
+def get_logger() -> logging.Logger:
+    """
+    Creates and returns a logger named "user_data" with specific configurations.
+    """
+    logger = logging.getLogger("user_data")
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+
+    stream_handler = logging.StreamHandler()
+    formatter = RedactingFormatter(fields=PII_FIELDS)
+    stream_handler.setFormatter(formatter)
+
+    logger.addHandler(stream_handler)
+
+    return logger
