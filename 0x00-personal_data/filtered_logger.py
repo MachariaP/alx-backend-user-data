@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
-"""Create logger
+"""Create logger and connect to secure database
 """
 
 import logging
 import re
+import os
+import mysql.connector
 from typing import List, Tuple
 
 
@@ -21,7 +23,7 @@ def filter_datum(fields: List[str], redaction: str, message: str, separator: str
     Returns:
         str: The obfuscated log message.
     """
-    pattern = f"({'|'.join(fields)})=[^{separator}]*"
+    pattern = f"({'|'.join(fields)})=[^{re.escape(separator)}]*"
     return re.sub(pattern, lambda m: f"{m.group(1)}={redaction}", message)
 
 
@@ -61,3 +63,20 @@ def get_logger() -> logging.Logger:
     logger.addHandler(stream_handler)
 
     return logger
+
+
+def get_db() -> mysql.connector.connection.MySQLConnection:
+    """
+    Connects to a secure database and returns the connection object.
+    """
+    username = os.getenv("PERSONAL_DATA_DB_USERNAME", "root")
+    password = os.getenv("PERSONAL_DATA_DB_PASSWORD", "")
+    host = os.getenv("PERSONAL_DATA_DB_HOST", "localhost")
+    database = os.getenv("PERSONAL_DATA_DB_NAME")
+
+    return mysql.connector.connect(
+        user=username,
+        password=password,
+        host=host,
+        database=database
+    )
