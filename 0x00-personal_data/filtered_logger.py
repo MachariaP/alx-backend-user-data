@@ -7,7 +7,6 @@ import logging
 import mysql.connector
 from typing import List
 
-
 patterns = {
     'extract': lambda x, y: r'(?P<field>{})=[^{}]*'.format('|'.join(x), y),
     'replace': lambda x: r'\g<field>={}'.format(x),
@@ -18,14 +17,28 @@ PII_FIELDS = ("name", "email", "phone", "ssn", "password")
 def filter_datum(
         fields: List[str], redaction: str, message: str, separator: str,
         ) -> str:
-    """Filters a log line.
+    """
+    Filters a log line by redacting specified fields.
+
+    Args:
+        fields (List[str]): The fields to redact.
+        redaction (str): The string to replace the field values with.
+        message (str): The log message to filter.
+        separator (str): The separator used in the log message.
+
+    Returns:
+        str: The filtered log message.
     """
     extract, replace = (patterns["extract"], patterns["replace"])
     return re.sub(extract(fields, separator), replace(redaction), message)
 
 
 def get_logger() -> logging.Logger:
-    """Creates a new logger for user data.
+    """
+    Creates a new logger for user data.
+
+    Returns:
+        logging.Logger: The configured logger.
     """
     logger = logging.getLogger("user_data")
     stream_handler = logging.StreamHandler()
@@ -37,7 +50,11 @@ def get_logger() -> logging.Logger:
 
 
 def get_db() -> mysql.connector.connection.MySQLConnection:
-    """Creates a connector to a database.
+    """
+    Creates a connector to a database.
+
+    Returns:
+        mysql.connector.connection.MySQLConnection: The database connection.
     """
     db_host = os.getenv("PERSONAL_DATA_DB_HOST", "localhost")
     db_name = os.getenv("PERSONAL_DATA_DB_NAME", "")
@@ -54,25 +71,32 @@ def get_db() -> mysql.connector.connection.MySQLConnection:
 
 
 def main():
-    """Logs the information about user records in a table.
     """
-    fields = "name,email,phone,ssn,password,ip,last_login,user_agent"
-    columns = fields.split(',')
-    query = "SELECT {} FROM users;".format(fields)
-    info_logger = get_logger()
-    connection = get_db()
-    with connection.cursor() as cursor:
-        cursor.execute(query)
-        rows = cursor.fetchall()
-        for row in rows:
-            record = map(
-                lambda x: '{}={}'.format(x[0], x[1]),
-                zip(columns, row),
-            )
-            msg = '{};'.format('; '.join(list(record)))
-            args = ("user_data", logging.INFO, None, None, msg, None, None)
-            log_record = logging.LogRecord(*args)
-            info_logger.handle(log_record)
+    Logs the information about user records in a table.
+    """
+    try:
+        fields = "name,email,phone,ssn,password,ip,last_login,user_agent"
+        columns = fields.split(',')
+        query = "SELECT {} FROM users;".format(fields)
+        info_logger = get_logger()
+        connection = get_db()
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            for row in rows:
+                record = map(
+                    lambda x: '{}={}'.format(x[0], x[1]),
+                    zip(columns, row),
+                )
+                msg = '{};'.format('; '.join(list(record)))
+                args = ("user_data", logging.INFO, None, None, msg, None, None)
+                log_record = logging.LogRecord(*args)
+                info_logger.handle(log_record)
+        connection.close()
+        exit(0)
+    except Exception as e:
+        logging.error("An error occurred: %s", e)
+        exit(1)
 
 
 class RedactingFormatter(logging.Formatter):
@@ -85,11 +109,24 @@ class RedactingFormatter(logging.Formatter):
     SEPARATOR = ";"
 
     def __init__(self, fields: List[str]):
+        """
+        Initializes the RedactingFormatter.
+
+        Args:
+            fields (List[str]): The fields to redact in the log messages.
+        """
         super(RedactingFormatter, self).__init__(self.FORMAT)
         self.fields = fields
 
     def format(self, record: logging.LogRecord) -> str:
-        """formats a LogRecord.
+        """
+        Formats a LogRecord, redacting specified fields.
+
+        Args:
+            record (logging.LogRecord): The log record to format.
+
+        Returns:
+            str: The formatted and redacted log message.
         """
         msg = super(RedactingFormatter, self).format(record)
         txt = filter_datum(self.fields, self.REDACTION, msg, self.SEPARATOR)
