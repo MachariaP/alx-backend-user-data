@@ -18,8 +18,11 @@ auth = None
 AUTH_TYPE = os.getenv('AUTH_TYPE')
 
 # Load the appropriate authentication class based on the environmental variables
-if AUTH_TYPE == 'auth':
-    from api.v1.auth.auth import Auth
+if AUTH_TYPE == 'basic_auth':
+    from api.v1.auth.basic_auth import BasicAuth
+    auth = BasicAuth()
+elif AUTH_TYPE == "auth":
+    from api.vi.auth.auth import Auth
     auth = Auth()
 
 
