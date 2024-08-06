@@ -1,26 +1,24 @@
 #!/usr/bin/env python3
-""" Module of Index views
+"""Module of Index views.
 """
-from flask import jsonify, abort, Blueprint
+from flask import jsonify, abort
 from api.v1.views import app_views
-
-app_views = Blueprint('app_views', __name__)
 
 
 @app_views.route('/status', methods=['GET'], strict_slashes=False)
 def status() -> str:
-    """ GET /api/v1/status
+    """GET /api/v1/status
     Return:
-      - the status of the API
+      - the status of the API.
     """
     return jsonify({"status": "OK"})
 
 
 @app_views.route('/stats/', strict_slashes=False)
 def stats() -> str:
-    """ GET /api/v1/stats
+    """GET /api/v1/stats
     Return:
-      - the number of each objects
+      - the number of each objects.
     """
     from models.user import User
     stats = {}
@@ -28,23 +26,19 @@ def stats() -> str:
     return jsonify(stats)
 
 
-@app_views.route('/api/v1/unauthorized', methods=['GET'])
-def unauthorized_endpoint():
-    """
-    Endpoint that raises a 401 Unauthorized error.
-
-    Returns:
-        A 401 error by using abort.
+@app_views.route('/unauthorized/', strict_slashes=False)
+def unauthorized() -> None:
+    """GET /api/v1/unauthorized
+    Return:
+      - Unauthorized error.
     """
     abort(401)
 
 
-@app_views.route('/api/v1/forbidden', methods=['GET'])
-def forbidden_endpoint():
-    """
-    Endpoint that raises a 403 Forbidden error.
-
-    Returns:
-        A 403 error by using abort.
+@app_views.route('/forbidden/', strict_slashes=False)
+def forbidden() -> None:
+    """GET /api/v1/forbidden
+    Return:
+      - Forbidden error.
     """
     abort(403)
