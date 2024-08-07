@@ -39,7 +39,10 @@ def before_request():
     excluded_paths = [
             '/api/v1/status/',
             '/api/v1/unauthorized/',
-            '/api/v1/forbidden/']
+            '/api/v1/forbidden/',
+            '/api/v1/auth_session/login/'
+            ]
+
     if not auth.require_auth(request.path, excluded_paths):
         return
 
@@ -49,7 +52,7 @@ def before_request():
     if auth.current_user(request) is None:
         abort(403)
 
-    request.current_user = auth.current_user(request)  # Assign current_user
+    request.current_user = user  # Assign current_user
 
 
 @app.route('/api/v1/status', methods=['GET'])
