@@ -5,6 +5,10 @@ Auth class
 
 from flask import request
 from typing import List, TypeVar
+import os, logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
 
 
 class Auth:
@@ -50,3 +54,26 @@ class Auth:
         """ Returns the current user.
         """
         return None
+
+    def session_cookie(self, request=None):
+        """
+        Retrieve a cookie value from a request.
+
+        Args:
+            request: The request object.
+
+        Returns:
+            Value of the cookie named by the environment variable SESSION_NAME.
+        """
+        if request is None:
+            logging.debug("Request is None")
+            return None
+
+        session_name = os.getenv('SESSION_NAME')
+        if session_name is None:
+            logging.debug("SESSION_NAME environment variable is not set")
+            return None
+
+        cookie_value = request.cookies.get(session_name)
+        logging.debug(f"Cookie value for {session_name} : {cookie_value}")
+        return cookie_value
