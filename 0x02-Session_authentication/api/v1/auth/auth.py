@@ -5,7 +5,8 @@ Auth class
 
 from flask import request
 from typing import List, TypeVar
-import os, logging
+import os
+import logging
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
