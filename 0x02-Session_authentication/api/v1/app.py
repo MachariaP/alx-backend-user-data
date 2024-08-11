@@ -21,6 +21,9 @@ AUTH_TYPE = os.getenv('AUTH_TYPE')
 if AUTH_TYPE == 'basic_auth':
     from api.v1.auth.basic_auth import BasicAuth
     auth = BasicAuth()
+if AUTH_TYPE == 'session_auth':
+    from api.v1.auth.session_auth import SessionAuth
+    auth = SessionAuth()
 elif AUTH_TYPE == "auth":
     from api.v1.auth.auth import Auth
     auth = Auth()
@@ -43,6 +46,7 @@ def before_request():
     if auth.authorization_header(request) is None:
         abort(401)
 
+    request.current_user = auth.current_user(request)
     if auth.current_user(request) is None:
         abort(403)
 
