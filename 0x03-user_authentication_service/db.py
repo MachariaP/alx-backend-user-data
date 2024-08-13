@@ -18,7 +18,7 @@ class DB:
     def __init__(self) -> None:
         """Initialize a new DB instance
         """
-        self._engine = create_engine("sqlite:///a.db", echo=True)
+        self._engine = create_engine("sqlite:///a.db", echo=False)
         Base.metadata.drop_all(self._engine)
         Base.metadata.create_all(self._engine)
         self.__session = None
@@ -87,6 +87,6 @@ class DB:
         user = self.find_user_by(id=user_id)
         for key, value in kwargs.items():
             if not hasattr(user, key):
-                raise ValueError(f"Attributr {key} does not exist on User")
+                raise ValueError(f"Attribute {key} does not exist on User")
             setattr(user, key, value)
         session.commit()
