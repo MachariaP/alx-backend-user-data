@@ -75,7 +75,7 @@ class DB:
 
         Args:
             user_id (int): The ID of the user to update.
-            **kwargs: Arbitrary keyword arguments to update the user's attributes.
+            **kwargs: Arbitrary keyword arguments to update user's attributes.
 
         Returns:
             None
