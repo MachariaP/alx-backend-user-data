@@ -3,7 +3,9 @@
 """
 
 from flask import Flask, request, jsonify, abort, make_response
+from flask import redirect, url_for, Response
 from auth import Auth
+import utils
 
 app = Flask(__name__)
 AUTH = Auth()
@@ -100,23 +102,25 @@ def get_reset_password_token() -> str:
 
 
 @app.route("/reset_password", methods=["PUT"], strict_slashes=False)
-def update_password() -> str:
+def update_password() -> Tuple[Response, int]:
     """Update the user's password using the reset token.
     """
+    success, err_msg = utils.request_body_provided(
+            expected_fields={"email", "reset_token", "new_password"}
+            )
+    if not success:
+        return jsonify({"message": err_msg}), 400
+
     email = request.form.get("email")
-    reset_token = request.form.get("password")
+    reset_token = request.form.get("reset_token")
     new_password = request.form.get("new_password")
 
-    if not email or not reset_token or not new_password:
-        abort(400, description=(
-            "Email, reset token and new password are required"
-            ))
-
     try:
-        AUTH.update_password(reset_token, new_password)
-        return jsonify({"email": email, "message": "Password updated"})
+        AUTH.update_password(reset_token=reset_token, password=new_password)
     except ValueError:
-        return jsonify({"message": "Invalid reset token"}), 403
+        abort(403)
+
+    return jsonify({"email": email, "message": "Password updated"}), 200
 
 
 if __name__ == "__main__":
