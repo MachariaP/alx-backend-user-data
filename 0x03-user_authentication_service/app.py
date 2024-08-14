@@ -66,7 +66,7 @@ def logout() -> str:
     return response
 
 
-@app.route("/profile", methods["GET"], strict_slashes=False)
+@app.route("/profile", methods=["GET"], strict_slashes=False)
 def profile() -> str:
     """Profile route to get the user's profile information.
     """
@@ -75,7 +75,7 @@ def profile() -> str:
     if session_id is None:
         abort(403)
 
-    user = Auth.get_user_from_session_id(session_id)
+    user = AUTH.get_user_from_session_id(session_id)
 
     if user is None:
         abort(403)
