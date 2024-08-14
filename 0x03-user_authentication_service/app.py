@@ -59,7 +59,11 @@ def logout() -> str:
         return abort(403)
 
     AUTH.destroy_session(user.id)
-    return redirect(url_for("welcome"))
+
+    response = make_response(redirect(url_for("welcome")))
+
+    response.set_cookie("session_id", '', expires=0)
+    return response
 
 
 if __name__ == "__main__":
