@@ -71,4 +71,10 @@ class Auth:
     def _generate_uuid() -> str:
         """Generate a new UUID and return its string representation.
         """
-        return str(uuid.uuid4())
+        new_uuid = str(uuid.uuid4())
+
+        try:
+            uuid_obj = uuid.UUID(new_uuid, version=4)
+        except ValueError:
+            raise ValueError("Generated UUID is not valid")
+        return new_uuid
