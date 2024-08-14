@@ -70,11 +70,25 @@ class Auth:
     @staticmethod
     def _generate_uuid() -> str:
         """Generate a new UUID and return its string representation.
-        """
-        new_uuid = str(uuid.uuid4())
 
+        Returns:
+            str: The string representatin of the generated UUID.
+        """
+        return str(uuid.uuid4())
+
+    def create_session(self, email: str) -> str:
+        """Create a session for the user with the given email.
+
+        Args:
+            email (str): The email of the user.
+
+        Returns:
+            str: The session ID as a string, or None if the user is not found.
+        """
         try:
-            uuid_obj = uuid.UUID(new_uuid, version=4)
-        except ValueError:
-            raise ValueError("Generated UUID is not valid")
-        return new_uuid
+            user = self._db.find_user_by(email=email)
+            session_id = self._generate_uuid()
+            self._db.update_user(user.id, session_id=session_id)
+            return session_id
+        except NoResultFound:
+            return None
