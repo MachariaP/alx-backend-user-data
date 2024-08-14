@@ -2,7 +2,8 @@
 """Basic Flask app.
 """
 
-from flask import Flask, request, jsonify, abort, make_response
+from flask import Flask, request, jsonify, abort
+from flask import make_response, redirect, url_for
 from auth import Auth
 
 app = Flask(__name__)
@@ -45,18 +46,18 @@ def login() -> str:
 
 
 @app.route("/sessions", methods=["DELETE"], strict_slashes=False)
-def logout() -> str:
+def logout() -> Response:
     """Logout route to destroy a user's session.
     """
     session_id = request.cookies.get("session_id")
 
     if session_id is None:
-        return abort(403)
+        abort(403)
 
     user = AUTH.get_user_from_session_id(session_id)
 
     if user is None:
-        return abort(403)
+        abort(403)
 
     AUTH.destroy_session(user.id)
 
