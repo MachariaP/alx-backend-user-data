@@ -63,6 +63,8 @@ def logout() -> str:
     response = make_response(redirect(url_for("welcome")))
 
     response.set_cookie("session_id", '', expires=0)
+    response.status_code = 200
+
     return response
 
 
