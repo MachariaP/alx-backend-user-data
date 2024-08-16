@@ -12,7 +12,7 @@ BASE_URL = "http://0.0.0.0:5000"
 
 def register_user(email: str, password: str) -> None:
     """Tests registering a user.
-    
+
     :param email: User's email address
     :param password: User's password
     """
@@ -31,7 +31,7 @@ def register_user(email: str, password: str) -> None:
 
 def log_in_wrong_password(email: str, password: str) -> None:
     """Tests logging in with a wrong password.
-    
+
     :param email: User's email address
     :param password: Incorrect password
     """
@@ -46,7 +46,7 @@ def log_in_wrong_password(email: str, password: str) -> None:
 
 def log_in(email: str, password: str) -> str:
     """Tests logging in.
-    
+
     :param email: User's email address
     :param password: User's password
     :return: Session ID
@@ -72,7 +72,7 @@ def profile_unlogged() -> None:
 
 def profile_logged(session_id: str) -> None:
     """Tests retrieving profile information whilst logged in.
-    
+
     :param session_id: Session ID
     """
     url = "{}/profile".format(BASE_URL)
@@ -86,7 +86,7 @@ def profile_logged(session_id: str) -> None:
 
 def log_out(session_id: str) -> None:
     """Tests logging out of a session.
-    
+
     :param session_id: Session ID
     """
     url = "{}/sessions".format(BASE_URL)
@@ -108,7 +108,7 @@ def log_out(session_id: str) -> None:
 
 def reset_password_token(email: str) -> str:
     """Tests requesting a password reset.
-    
+
     :param email: User's email address
     :return: Reset token
     """
@@ -124,7 +124,7 @@ def reset_password_token(email: str) -> str:
 
 def update_password(email: str, reset_token: str, new_password: str) -> None:
     """Tests updating a user's password.
-    
+
     :param email: User's email address
     :param reset_token: Password reset token
     :param new_password: New password
@@ -135,7 +135,7 @@ def update_password(email: str, reset_token: str, new_password: str) -> None:
         'reset_token': reset_token,
         'new_password': new_password,
     }
-    res = requests.put(url,json=payload)
+    res = requests.put(url, json=payload)
     print(f"Update password response status code: {res.status_code}")
     print(f"Update password response body: {res.json()}")
     assert res.status_code == 200
