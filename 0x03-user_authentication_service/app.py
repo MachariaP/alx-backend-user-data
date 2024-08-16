@@ -3,6 +3,7 @@
 """
 
 from flask import Flask, request, jsonify, abort, make_response
+from flask import redirect, url_for
 from auth import Auth
 
 app = Flask(__name__)
@@ -49,21 +50,34 @@ def logout() -> str:
     """Logout route to destroy a user's session.
     """
     session_id = request.cookies.get("session_id")
+    print(f"Session ID: {session_id}")
 
     if session_id is None:
+        print("No session ID found, aborting with 403")
         abort(403)
 
     user = AUTH.get_user_from_session_id(session_id)
+    print(f"User: {user}")
 
     if user is None:
+        print("No user found for session ID, aborting with 403")
         abort(403)
 
-    AUTH.destroy_session(user.id)
+    try:
+        AUTH.destroy_session(user.id)
+        print("Session destroyed")
+    except Exception as e:
+        print(f"Error destroying session: {e}")
+        abort(500)
 
-    response = make_response(redirect(url_for("welcome")))
-
-    response.set_cookie("session_id", '', expires=0)
-    response.status_code = 200
+    try:
+        response = make_response(jsonify({"message": "Bienvenue"}))
+        response.set_cookie("session_id", '', expires=0)
+        response.status_code = 200
+        print(f"Response status code: {response.status_code}")
+    except Exception as e:
+        print(f"Error creating response: {e}")
+        abort(500)
 
     return response
 
