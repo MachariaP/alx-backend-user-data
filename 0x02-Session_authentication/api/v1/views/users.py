@@ -4,7 +4,7 @@
 from api.v1.views import app_views
 from flask import abort, jsonify, request
 from models.user import User
-
+from os import getenv
 
 @app_views.route('/users', methods=['GET'], strict_slashes=False)
 def view_all_users() -> str:
@@ -26,9 +26,22 @@ def view_one_user(user_id: str = None) -> str:
       - 404 if the User ID doesn't exist
     """
     if user_id == "me":
-        if request.current_user is None:
-            abort(404)
-        return jsonify(request.current_user.to_json())
+        from api.v1.app import auth
+        session_cookie = getenv("SESSION_NAME")
+        session_id = request.cookies.get(session_cookie)
+
+        if not session_id:
+            return jsonify({"error": "Forbidden"}), 403
+
+        user_id = auth.get_user_id(session_id)
+        if not user_id:
+            return jsonify({"error": "Forbidden"}), 403
+
+        user = User.get(user_id)
+        if not user:
+            return jsonify({"error": "Forbidden"}), 403
+
+        return jsonify(user.to_json())
 
     if user_id is None:
         abort(404)
