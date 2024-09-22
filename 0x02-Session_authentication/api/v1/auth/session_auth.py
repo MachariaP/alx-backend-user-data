@@ -31,7 +31,7 @@ class SessionAuth(Auth):
 
     def user_id_for_session_id(self, session_id: str = None) -> str:
         """
-        Retrive a user ID based on a session ID.
+        Retrieve a user ID based on a session ID.
 
         Args:
             session_id (str): The session ID to look up.
@@ -48,3 +48,27 @@ class SessionAuth(Auth):
         """Retrieves the user associated with the request."""
         user_id = self.user_id_for_session_id(self.session_cookie(request))
         return User.get(user_id)
+
+    def destroy_session(self, request=None) -> bool:
+        """
+        Destroy the session associated with the request.
+
+        Args:
+            request: The request object containing the session cookie.
+
+        Returns:
+            bool: True if the session was successfully destroyed, otherwise False.
+        """
+        if request is None:
+            return False
+        
+        session_id = self.session_cookie(request)
+        if session_id is None:
+            return False
+        
+        user_id = self.user_id_for_session_id(session_id)
+        if user_id is None:
+            return False
+        
+        del self.user_id_by_session_id[session_id]
+        return True

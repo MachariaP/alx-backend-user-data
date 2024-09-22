@@ -6,7 +6,6 @@ from flask import abort, jsonify, request
 from models.user import User
 from os import getenv
 
-
 @app_views.route('/auth_session/login', methods=['POST'], strict_slashes=False)
 def session_login() -> str:
     """ POST /api/v1/auth_session/login
@@ -42,3 +41,14 @@ def session_login() -> str:
     response.set_cookie(session_cookie, session_id)
 
     return response
+
+@app_views.route('/api/v1/auth_session/logout', methods=['DELETE'], strict_slashes=False)
+def logout():
+    """ DELETE /api/v1/auth_session/logout
+    Return:
+      - Empty JSON dictionary with status code 200
+    """
+    from api.v1.app import auth
+    if not auth.destroy_session(request):
+        abort(404)
+    return jsonify({}), 200
