@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""
-UserSession model
-"""
+
+"""This module defines the model for saving user sessions."""
+
 from models.base import Base
 
 
 class UserSession(Base):
-    """UserSession class to store session information"""
+    """Implement the user session model."""
 
-    def __init__(self, *args: list, **kwargs: dict):
-        """Initialize a UserSession instance"""
+    def __init__(
+        self, user_id: str, session_id: str, *args: list, **kwargs: dict
+    ):
+        """Initialize user session object."""
         super().__init__(*args, **kwargs)
-        self.user_id = kwargs.get('user_id')
-        self.session_id = kwargs.get('session_id')
+        self.user_id: str = user_id
+        self.session_id: str = session_id
