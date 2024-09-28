@@ -3,79 +3,94 @@
 Route module for the API
 """
 from os import getenv
-from api.v1.views import app_views
-from flask import Flask, jsonify, abort, request
+from typing import Dict, Tuple
+
+from flask import Flask, abort, jsonify, request
 from flask_cors import CORS
-import os
+
+from api.v1.views import app_views
 
 app = Flask(__name__)
 app.register_blueprint(app_views)
 CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
-
-# Initialize the authentication variable
 auth = None
-AUTH_TYPE = os.getenv('AUTH_TYPE')
 
-# Load the appropriate auth class based on the environmental variables
-if AUTH_TYPE == 'basic_auth':
+auth_type = getenv("AUTH_TYPE")
+
+if auth_type == "basic_auth":
     from api.v1.auth.basic_auth import BasicAuth
+
     auth = BasicAuth()
-elif AUTH_TYPE == "session_auth":
-    from api.v1.auth.session_auth import SessionAuth
-    auth = SessionAuth()
-elif AUTH_TYPE == "session_exp_auth":
-    from api.v1.auth.session_exp_auth import SessionExpAuth
-    auth = SessionExpAuth()
-elif AUTH_TYPE == "auth":
+elif auth_type == "auth":
     from api.v1.auth.auth import Auth
+
     auth = Auth()
+elif auth_type == "session_auth":
+    from api.v1.auth.session_auth import SessionAuth
 
-@app.before_request
-def before_request():
-    """Filter each request before it is processed."""
-    if auth is None:
-        return
+    auth = SessionAuth()
+elif auth_type == "session_exp_auth":
+    from api.v1.auth.session_exp_auth import SessionExpAuth
 
-    excluded_paths = [
-        '/api/v1/status/',
-        '/api/v1/unauthorized/',
-        '/api/v1/forbidden/',
-        '/api/v1/auth_session/login/'
-    ]
-    if not auth.require_auth(request.path, excluded_paths):
-        return
+    auth = SessionExpAuth()
+elif auth_type == "session_db_auth":
+    from api.v1.auth.session_db_auth import SessionDBAuth
 
-    if auth.authorization_header(request) is None and auth.session_cookie(request) is None:
-        abort(401)
+    auth = SessionDBAuth()
 
-    request.current_user = auth.current_user(request)
-    if request.current_user is None:
-        abort(403)
-
-@app.route('/api/v1/status', methods=['GET'])
-@app.route('/api/v1/status/', methods=['GET'])
-def status():
-    """
-    Return the status of the API.
-    """
-    return jsonify({"status": "OK"})
 
 @app.errorhandler(404)
-def not_found(error) -> str:
-    """Not found handler."""
+def not_found(_) -> Tuple[Dict, int]:
+    """Not found handler"""
     return jsonify({"error": "Not found"}), 404
 
+
 @app.errorhandler(401)
-def unauthorized(error) -> str:
-    """Unauthorized handler."""
+def unauthorized(_) -> Tuple[Dict, int]:
+    """Unauthorized error handler."""
     return jsonify({"error": "Unauthorized"}), 401
 
+
 @app.errorhandler(403)
-def forbidden(error) -> str:
-    """Forbidden handler."""
+def forbidden(_) -> Tuple[Dict, int]:
+    """Forbidden API operation handler."""
     return jsonify({"error": "Forbidden"}), 403
+
+
+@app.before_request
+def auth_middleware():
+    """Before request handler."""
+    if auth is None:
+        return None
+
+    excluded_paths = [
+        "/api/v1/status/",
+        "/api/v1/unauthorized/",
+        "/api/v1/forbidden/",
+        "/api/v1/auth_session/login/",
+    ]
+
+    if not auth.require_auth(request.path, excluded_paths):
+        return None
+
+    auth_header = auth.authorization_header(request)
+    session_cookie = auth.session_cookie(request)
+
+    if auth_header and session_cookie:  # one auth type at a time.
+        return None
+
+    if not auth_header and not session_cookie:  # no auth type provided.
+        abort(401)
+
+    user = auth.current_user(request)
+    if user is None:
+        abort(403)
+
+    request.current_user = user
+
 
 if __name__ == "__main__":
     host = getenv("API_HOST", "0.0.0.0")
     port = getenv("API_PORT", "5000")
-    app.run(host=host, port=port)
+    app.run(host=host, port=port, debug=getenv("DEBUG", False))
+    
