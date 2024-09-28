@@ -4,8 +4,13 @@
 import os
 from datetime import datetime, timedelta
 from typing import Union
+import logging
 
 from api.v1.auth.session_auth import SessionAuth
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class SessionExpAuth(SessionAuth):
@@ -18,6 +23,8 @@ class SessionExpAuth(SessionAuth):
             self.session_duration = int(os.environ.get("SESSION_DURATION", 0))
         except ValueError:
             self.session_duration = 0
+        logger.debug(f"Session duration set to {
+                     self.session_duration} seconds")
 
     def create_session(self, user_id: str = None) -> Union[str, None]:
         """Create an expirable session."""
@@ -29,6 +36,8 @@ class SessionExpAuth(SessionAuth):
             "user_id": user_id,
             "created_at": datetime.now(),
         }
+        logger.debug(f"Session created for user_id {
+                     user_id} with session_id {session_id}")
 
         return session_id
 
@@ -42,6 +51,8 @@ class SessionExpAuth(SessionAuth):
         session = self.user_id_by_session_id.get(session_id, {})
 
         if "created_at" not in session:
+            logger.debug(f"Session ID {
+                         session_id} does not have a creation time")
             return None
 
         if self.session_duration <= 0:  # non-expiry session
@@ -52,6 +63,7 @@ class SessionExpAuth(SessionAuth):
             + timedelta(seconds=self.session_duration)
             < datetime.now()
         ):  # the session has expired
+            logger.debug(f"Session ID {session_id} has expired")
             return None
 
         return session.get("user_id")

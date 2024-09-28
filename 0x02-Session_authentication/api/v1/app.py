@@ -4,11 +4,16 @@ Route module for the API
 """
 from os import getenv
 from typing import Dict, Tuple
+import logging
 
 from flask import Flask, abort, jsonify, request
 from flask_cors import CORS
 
 from api.v1.views import app_views
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.register_blueprint(app_views)
