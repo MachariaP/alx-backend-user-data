@@ -55,4 +55,3 @@ class SessionExpAuth(SessionAuth):
             return None
 
         return session.get("user_id")
-    
